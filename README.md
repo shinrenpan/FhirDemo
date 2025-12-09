@@ -1,1 +1,1 @@
-shinrenpan/shinrenpan/discussions/28
+https://joepan.hashnode.dev/fhir-oauth-demo

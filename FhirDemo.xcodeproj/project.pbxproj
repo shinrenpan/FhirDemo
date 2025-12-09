@@ -15,7 +15,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		D8D2A7632D8832AC00AFC741 /* Exceptions for "FhirDemo" folder in "FhirDemo" target */ = {
+		D8D2A7632D8832AC00AFC741 /* Exceptions for "Sources" folder in "FhirDemo" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -25,12 +25,12 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D87F2A422D8814A600DD3E32 /* FhirDemo */ = {
+		D87F2A422D8814A600DD3E32 /* Sources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				D8D2A7632D8832AC00AFC741 /* Exceptions for "FhirDemo" folder in "FhirDemo" target */,
+				D8D2A7632D8832AC00AFC741 /* Exceptions for "Sources" folder in "FhirDemo" target */,
 			);
-			path = FhirDemo;
+			path = Sources;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -50,7 +50,7 @@
 		D87F2A372D8814A600DD3E32 = {
 			isa = PBXGroup;
 			children = (
-				D87F2A422D8814A600DD3E32 /* FhirDemo */,
+				D87F2A422D8814A600DD3E32 /* Sources */,
 				D87F2A412D8814A600DD3E32 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -79,7 +79,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				D87F2A422D8814A600DD3E32 /* FhirDemo */,
+				D87F2A422D8814A600DD3E32 /* Sources */,
 			);
 			name = FhirDemo;
 			packageProductDependencies = (
@@ -274,7 +274,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = FhirDemo/Info.plist;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = Launch;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -287,7 +287,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.shinrenpan.FhirDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -300,7 +300,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = FhirDemo/Info.plist;
+				INFOPLIST_FILE = Sources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = Launch;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -313,7 +313,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.shinrenpan.FhirDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
