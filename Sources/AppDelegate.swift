@@ -5,25 +5,18 @@
 //
 
 import UIKit
-import AuthenticationServices
 
 @main
-class AppDelegate: UIResponder {
-  var window: UIWindow?
-}
+class AppDelegate: UIResponder {}
 
 // MARK: - UIApplicationDelegate
 
 extension AppDelegate: UIApplicationDelegate {
-  func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    let bounds = UIScreen.main.bounds
-    let window = UIWindow(frame: bounds)
-    window.backgroundColor = .white
-    let vc = HomeViewController(viewModel: .init())
-    window.rootViewController = UINavigationController(rootViewController: vc)
-    self.window = window
-    window.makeKeyAndVisible()
+  func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+    true
+  }
 
-    return true
+  func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+    UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
   }
 }

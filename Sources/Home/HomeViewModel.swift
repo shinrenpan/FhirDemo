@@ -8,10 +8,10 @@
 import Foundation
 import Observation
 
-@MainActor
 @Observable
+@MainActor
 final class HomeViewModel {
-  enum Action: Equatable {
+  enum Action: Sendable {
     case view(ViewAction)
     case router(Router)
     case oauth(OAuth)
@@ -19,6 +19,7 @@ final class HomeViewModel {
     case apiResponse(APIResponse)
   }
 
+  @ObservationIgnored
   var onAction: (@MainActor (Action) -> Void)?
 
   var state: State = .init()
@@ -46,7 +47,7 @@ final class HomeViewModel {
 // MARK: - View Action
 
 extension HomeViewModel {
-  enum ViewAction: Equatable {
+  enum ViewAction: Sendable {
     case loginButtonDidTap
     case logoutButtonDidTap
   }
@@ -74,7 +75,7 @@ extension HomeViewModel {
 // MARK: - Router
 
 extension HomeViewModel {
-  enum Router: Equatable {
+  enum Router: Sendable {
     case showOAuthView(URL)
   }
 
@@ -86,26 +87,26 @@ extension HomeViewModel {
 // MARK: - OAuth
 
 extension HomeViewModel {
-  enum OAuth: Equatable {
+  enum OAuth: Sendable {
     case success(_ url: URL?)
     case failure
-    case handleCallback(_ url: URL)
+    case callbackURLReceived(_ url: URL)
   }
 
   private func handleOAuth(_ oauth: OAuth) async {
     switch oauth {
     case let .success(url):
       if let url {
-        await doAction(.oauth(.handleCallback(url)))
+        await doAction(.oauth(.callbackURLReceived(url)))
       }
       else {
         state.viewStatus = .failed
       }
-      
+
     case .failure:
       state.viewStatus = .failed
 
-    case let .handleCallback(url):
+    case let .callbackURLReceived(url):
       if let code = makeOAuthCode(url) {
         await doAction(.apiRequest(.getToken(code)))
       }
@@ -119,7 +120,7 @@ extension HomeViewModel {
 // MARK: - API Request
 
 extension HomeViewModel {
-  enum APIRequest: Equatable {
+  enum APIRequest: Sendable {
     case getToken(_ code: String)
     case getPatients(_ token: String)
   }
@@ -127,32 +128,28 @@ extension HomeViewModel {
   private func handleAPIRequest(_ request: APIRequest) async {
     switch request {
     case let .getToken(code):
-      if let request = makeTokenURLRequest(code: code) {
-        URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
-          if error != nil {
-            Task { @MainActor in self?.state.viewStatus = .failed }
-          }
-          else {
-            Task { await self?.doAction(.apiResponse(.getToken(data))) }
-          }
-        }.resume()
+      guard let urlRequest = makeTokenURLRequest(code: code) else {
+        state.viewStatus = .failed
+        return
       }
-      else {
+      do {
+        let (data, _) = try await URLSession.shared.data(for: urlRequest)
+        await doAction(.apiResponse(.getToken(data)))
+      }
+      catch {
         state.viewStatus = .failed
       }
 
     case let .getPatients(token):
-      if let request = makePatientURLRequest(token: token) {
-        URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
-          if error != nil {
-            Task { @MainActor in self?.state.viewStatus = .failed }
-          }
-          else {
-            Task { await self?.doAction(.apiResponse(.getPatients(data))) }
-          }
-        }.resume()
+      guard let urlRequest = makePatientURLRequest(token: token) else {
+        state.viewStatus = .failed
+        return
       }
-      else {
+      do {
+        let (data, _) = try await URLSession.shared.data(for: urlRequest)
+        await doAction(.apiResponse(.getPatients(data)))
+      }
+      catch {
         state.viewStatus = .failed
       }
     }
@@ -162,32 +159,27 @@ extension HomeViewModel {
 // MARK: - API Response
 
 extension HomeViewModel {
-  enum APIResponse: Equatable {
-    case getToken(_ data: Data?)
-    case getPatients(_ data: Data?)
+  enum APIResponse: Sendable {
+    case getToken(_ data: Data)
+    case getPatients(_ data: Data)
   }
 
   private func handleAPIResponse(_ response: APIResponse) async {
     switch response {
     case let .getToken(data):
-      if let data, let token = makeToken(data) {
-        await doAction(.apiRequest(.getPatients(token)))
-      }
-      else {
+      guard let tokenDTO = try? JSONDecoder().decode(TokenDTO.self, from: data),
+            let token = tokenDTO.toDomain() else {
         state.viewStatus = .failed
+        return
       }
+      await doAction(.apiRequest(.getPatients(token)))
 
     case let .getPatients(data):
-      if let data {
-        do {
-          state.patients = try DisplayPatient.with(data)
-          state.viewStatus = .loggedIn
-        }
-        catch {
-          state.viewStatus = .failed
-        }
+      do {
+        state.patients = try Patient.with(data)
+        state.viewStatus = .loggedIn
       }
-      else {
+      catch {
         state.viewStatus = .failed
       }
     }
@@ -210,15 +202,9 @@ private extension HomeViewModel {
       .init(name: "redirect_uri", value: "app://"),
       .init(name: "aud", value: audURI),
       .init(name: "scope", value: "patient/*.cruds"),
-      //    .init(name: "code_challenge_method", value: "S256"),
-      //    .init(name: "code_challenge", value: codeVerifier),
     ]
 
-    guard let url = urlComponents.url else {
-      return nil
-    }
-
-    return url
+    return urlComponents.url
   }
 
   func makeOAuthCode(_ url: URL) -> String? {
@@ -236,58 +222,38 @@ private extension HomeViewModel {
   func makeTokenURLRequest(code: String) -> URLRequest? {
     let tokenURI = "https://launch.smarthealthit.org/v/r4/sim/WzIsIiIsIiIsIkFVVE8iLDAsMCwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0/auth/token"
 
-    guard let components = URLComponents(string: tokenURI) else {
-        return nil
-    }
-
-    guard let url = components.url else {
-        return nil
+    guard let components = URLComponents(string: tokenURI),
+          let url = components.url else {
+      return nil
     }
 
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
-    //request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+    request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
 
     var urlComponents = URLComponents()
     urlComponents.queryItems = [
-        URLQueryItem(name: "grant_type", value: "authorization_code"),
-        URLQueryItem(name: "code", value: code),
-        //URLQueryItem(name: "client_id", value: clientID),
-        URLQueryItem(name: "redirect_uri", value: "app://"),
-        //URLQueryItem(name: "code_verifier", value: codeVerifier),
-        //URLQueryItem(name: "code_challenge_method", value: "S256")
+      URLQueryItem(name: "grant_type", value: "authorization_code"),
+      URLQueryItem(name: "code", value: code),
+      URLQueryItem(name: "redirect_uri", value: "app://"),
     ]
     request.httpBody = urlComponents.query?.data(using: .utf8)
 
     return request
   }
 
-  func makeToken(_ data: Data?) -> String? {
-    guard let data else {
-      return nil
-    }
-
-    guard let result = try? JSONDecoder().decode(Token.self, from: data) else {
-      return nil
-    }
-
-    return result.access_token.isEmpty ? nil : result.access_token
-  }
-
   func makePatientURLRequest(token: String) -> URLRequest? {
     let patientURI = "https://launch.smarthealthit.org/v/r4/sim/WzIsIiIsIiIsIkFVVE8iLDAsMCwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0/fhir/Patient"
 
-    guard let urlComponents = URLComponents(string: patientURI) else {
+    guard let urlComponents = URLComponents(string: patientURI),
+          let url = urlComponents.url else {
       return nil
     }
 
-    guard let url = urlComponents.url else {
-      return nil
-    }
+    var request = URLRequest(url: url)
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/fhir+json", forHTTPHeaderField: "Accept")
 
-    var result = URLRequest(url: url)
-    result.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
-    return result
+    return request
   }
 }

@@ -49,22 +49,22 @@ private extension HomeView {
       Text("Something wrong!!!")
         .font(.largeTitle)
         .fontWeight(.bold)
-        .foregroundColor(.red)
+        .foregroundStyle(.red)
       
     case .logout:
       EmptyView()
       
     case .loggedIn:
-      list()
+      patientListView()
     }
   }
   
   @ViewBuilder
-  func list() -> some View {
+  func patientListView() -> some View {
     ScrollView {
       LazyVStack {
-        ForEach(viewModel.state.patients, id: \.id) { patient in
-          cell(patient)
+        ForEach(viewModel.state.patients) { patient in
+          patientCellView(patient)
             .padding()
             .background(.green)
             .clipShape(RoundedRectangle(cornerRadius: 16))
@@ -73,9 +73,9 @@ private extension HomeView {
       .padding()
     }
   }
-  
+
   @ViewBuilder
-  func cell(_ patient: HomeViewModel.DisplayPatient) -> some View {
+  func patientCellView(_ patient: HomeViewModel.Patient) -> some View {
     HStack(spacing: 16) {
       VStack(alignment: .leading) {
         Text("Name:")
