@@ -2,8 +2,6 @@
 
 SMART on FHIR OAuth 2.0 示範 App，展示如何透過 Authorization Code Flow 授權並查詢 FHIR R4 病患資料。
 
-部落格文章：https://joepan.hashnode.dev/fhir-oauth-demo
-
 ## 功能
 
 - SMART on FHIR OAuth 2.0 授權（Authorization Code Flow）
